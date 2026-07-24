@@ -105,11 +105,21 @@ def scan_directory(directory_path):
                 print("-" * 30)
 
 if __name__ == "__main__":
-    # Windows ke liye aap kisi bhi folder ka path aise de sakte hain
-    # Note: Path ke aage 'r' lagana mat bhoolna (Raw string ke liye), taaki backslashes (\) error na dein
-    folder_to_scan = r"C:\Users\Ankey Goyat\Downloads" 
+    import os
     
-    # Ya fir aap ek dummy folder banakar uska path de sakte hain:
-    # folder_to_scan = r".\test_files"
+    print("=" * 50)
+    print("🛡️  WELCOME TO FILE IDENTIFIER & MALWARE SCANNER 🛡️")
+    print("=" * 50)
     
-    scan_directory(folder_to_scan)
+    # Prompt the user to enter the directory path dynamically
+    folder_to_scan = input("👉 Enter the directory path to scan: ").strip()
+    
+    print("-" * 50)
+    
+    # Check if the entered path actually exists
+    if os.path.exists(folder_to_scan):
+        scan_directory(folder_to_scan)
+    else:
+        print(f"❌ Error: The directory '{folder_to_scan}' does not exist! Please check the path.")
+    
+    print("=" * 50)
