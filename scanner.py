@@ -1,6 +1,5 @@
 import os
 import hashlib
-import requests  # API calls ke liye
 
 # 1. Expanded Magic Bytes Dictionary
 MAGIC_BYTES = {
@@ -13,9 +12,6 @@ MAGIC_BYTES = {
     b'\x7FELF': "ELF" # Linux Executable
 }
 
-# VirusTotal API Key (Aap unki website par free account banakar le sakte hain)
-# Agar API key nahi hai, toh ye feature skip ho jayega.
-VT_API_KEY = "YOUR_VIRUSTOTAL_API_KEY_HERE" 
 
 def identify_file(file_path):
     try:
@@ -37,31 +33,6 @@ def get_file_hash(file_path):
         return sha256_hash.hexdigest()
     except Exception:
         return None
-
-def check_virus_total(file_hash):
-    """Hash ko VirusTotal database par check karta hai without uploading the file."""
-    if VT_API_KEY == "YOUR_VIRUSTOTAL_API_KEY_HERE" or not file_hash:
-        return "API Key missing (Skipping Online Scanner)"
-    
-    url = f"https://www.virustotal.com/api/v3/files/{file_hash}"
-    headers = {"x-apikey": VT_API_KEY}
-    
-    try:
-        response = requests.get(url, headers=headers, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            # Antivirus engine ka decision nikalna
-            stats = data['data']['attributes']['last_analysis_stats']
-            malicious_count = stats.get('malicious', 0)
-            if malicious_count > 0:
-                return f"⚠ MALWARE DETECTED ({malicious_count} antivirus flags!)"
-            return "✅ Clean on VirusTotal"
-        elif response.status_code == 404:
-            return "❔ Unknown file (Never seen by VirusTotal)"
-        else:
-            return f"Error (Status code: {response.status_code})"
-    except Exception:
-        return "Connection Error"
 
 def scan_directory(directory_path):
     """Diye gaye folder ke andar ki saari files ko scan karta hai."""
@@ -99,9 +70,6 @@ def scan_directory(directory_path):
                 # Hash calculation aur VirusTotal check
                 f_hash = get_file_hash(full_path)
                 print(f"    - SHA256: {f_hash}")
-                
-                vt_result = check_virus_total(f_hash)
-                print(f"    - VirusTotal: {vt_result}")
                 print("-" * 30)
 
 if __name__ == "__main__":

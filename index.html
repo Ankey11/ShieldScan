@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Advanced File Type Identifier & Malware Scanner – Detect extension spoofing and scan files using SHA-256 fingerprints and VirusTotal integration." />
+  <title>ShieldScan – Advanced Malware Scanner Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 3L5 10V22C5 30.28 11.6 37.96 20 40C28.4 37.96 35 30.28 35 22V10L20 3Z" fill="url(#shieldGrad)" />
+          <path d="M14 20l4 4 8-8" stroke="#0a0e1a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="shieldGrad" x1="5" y1="3" x2="35" y2="40" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00f5a0"/><stop offset="1" stop-color="#00d9f5"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="logo-text">ShieldScan</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" id="nav-dashboard" onclick="showSection('dashboard');return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-scanner" onclick="showSection('scanner');return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>File Scanner</span>
+        <span class="nav-badge">GO</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-results" onclick="showSection('results');return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>Scan Results</span>
+      </a>
+      <a href="#" class="nav-item" id="nav-about" onclick="showSection('about');return false;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>About</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="system-status">
+        <span class="pulse-dot"></span>
+        <span>System Online</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- MAIN -->
+  <main class="main-content" id="mainContent">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title">
+        <h1 id="pageTitle">Dashboard</h1>
+        <p id="pageSubtitle">Security Overview</p>
+      </div>
+      <div class="topbar-right">
+        <div class="threat-level" id="threatLevelBadge">
+          <span class="threat-dot low"></span>
+          <span>Threat: <strong>Low</strong></span>
+        </div>
+        <div class="topbar-time" id="topbarTime">--:--:--</div>
+      </div>
+    </header>
+
+    <!-- DASHBOARD SECTION -->
+    <section class="section active" id="section-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon total"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div>
+          <div class="stat-info">
+            <span class="stat-label">Total Scanned</span>
+            <span class="stat-value" id="statTotalVal">0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon clean"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div class="stat-info">
+            <span class="stat-label">Clean Files</span>
+            <span class="stat-value" id="statCleanVal">0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon suspicious"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="stat-info">
+            <span class="stat-label">Suspicious</span>
+            <span class="stat-value" id="statSuspiciousVal">0</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon malicious"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+          <div class="stat-info">
+            <span class="stat-label">Malware</span>
+            <span class="stat-value" id="statMaliciousVal">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mid-row">
+        <div class="card chart-card">
+          <div class="card-header"><h2>Detection Breakdown</h2><span class="card-badge">Live</span></div>
+          <div class="donut-wrap">
+            <svg class="donut-chart" viewBox="0 0 200 200" id="donutChart">
+              <circle class="donut-bg" cx="100" cy="100" r="70"/>
+              <circle class="donut-seg clean-seg" id="cleanSeg" cx="100" cy="100" r="70" stroke-dasharray="0 439.8" stroke-dashoffset="0"/>
+              <circle class="donut-seg suspicious-seg" id="suspiciousSeg" cx="100" cy="100" r="70" stroke-dasharray="0 439.8" stroke-dashoffset="0"/>
+              <circle class="donut-seg malicious-seg" id="maliciousSeg" cx="100" cy="100" r="70" stroke-dasharray="0 439.8" stroke-dashoffset="0"/>
+              <text x="100" y="96" class="donut-center-num" id="donutTotal">0</text>
+              <text x="100" y="116" class="donut-center-label">SCANNED</text>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-item"><span class="legend-dot clean"></span>Clean</div>
+              <div class="legend-item"><span class="legend-dot suspicious"></span>Suspicious</div>
+              <div class="legend-item"><span class="legend-dot malicious"></span>Malware</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card type-card">
+          <div class="card-header"><h2>File Types Found</h2></div>
+          <div class="type-list" id="typeList">
+            <p class="empty-state">No scan data yet.</p>
+          </div>
+        </div>
+
+        <div class="card actions-card">
+          <div class="card-header"><h2>Quick Actions</h2></div>
+          <div class="quick-actions">
+            <button class="action-btn primary" onclick="showSection('scanner')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              New Scan
+            </button>
+            <button class="action-btn secondary" onclick="exportResults()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Report
+            </button>
+            <button class="action-btn danger" onclick="clearAllResults()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+              Clear History
+            </button>
+          </div>
+          <div class="recent-label">Recent Activity</div>
+          <div class="activity-feed" id="activityFeed">
+            <p class="empty-state">No recent activity.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card table-card">
+        <div class="card-header">
+          <h2>Recent Threat Log</h2>
+          <button class="view-all-btn" onclick="showSection('results')">View All →</button>
+        </div>
+        <div class="table-wrap">
+          <table class="scan-table">
+            <thead><tr><th>#</th><th>Filename</th><th>Claimed</th><th>Actual</th><th>SHA-256</th><th>VirusTotal</th><th>Status</th></tr></thead>
+            <tbody id="dashThreatBody"><tr><td colspan="7" class="empty-cell">No threats logged yet. Start a scan.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCANNER SECTION -->
+    <section class="section" id="section-scanner">
+      <div class="scanner-layout">
+        <div class="card config-card">
+          <div class="card-header"><h2>Scanner Configuration</h2></div>
+
+
+          <div class="form-group">
+            <label>Magic Byte Types</label>
+            <div class="toggle-group">
+              <label class="toggle-chip"><input type="checkbox" checked value="JPEG"> JPEG</label>
+              <label class="toggle-chip"><input type="checkbox" checked value="PNG"> PNG</label>
+              <label class="toggle-chip"><input type="checkbox" checked value="PDF"> PDF</label>
+              <label class="toggle-chip"><input type="checkbox" checked value="ZIP"> ZIP</label>
+              <label class="toggle-chip"><input type="checkbox" checked value="EXE"> EXE</label>
+              <label class="toggle-chip"><input type="checkbox" checked value="RAR"> RAR</label>
+              <label class="toggle-chip"><input type="checkbox" checked value="ELF"> ELF</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Options</label>
+            <label class="checkbox-item"><input type="checkbox" id="optRecursive" checked/><span class="checkmark"></span>Recursive scan</label>
+            <label class="checkbox-item"><input type="checkbox" id="optHashOnly"/><span class="checkmark"></span>Hash-only mode</label>
+          </div>
+
+          <div class="scanner-info-box">
+            <div class="info-row"><span>Magic Signatures</span><strong>7</strong></div>
+            <div class="info-row"><span>Hash Algorithm</span><strong>SHA-256</strong></div>
+          </div>
+        </div>
+
+        <div class="scan-main">
+          <div class="card drop-card" id="dropZone">
+            <div class="drop-inner" id="dropInner">
+              <div class="drop-icon">
+                <svg viewBox="0 0 80 80" fill="none">
+                  <circle cx="40" cy="40" r="38" stroke="url(#dg)" stroke-width="2" stroke-dasharray="6 4"/>
+                  <path d="M40 55V30M30 40l10-10 10 10" stroke="url(#dg2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <defs>
+                    <linearGradient id="dg" x1="2" y1="2" x2="78" y2="78"><stop stop-color="#00f5a0"/><stop offset="1" stop-color="#00d9f5"/></linearGradient>
+                    <linearGradient id="dg2" x1="30" y1="30" x2="50" y2="55"><stop stop-color="#00f5a0"/><stop offset="1" stop-color="#00d9f5"/></linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h3>Drop Files Here</h3>
+              <p>or click to browse your system</p>
+              <input type="file" id="fileInput" multiple style="display:none" onchange="handleFileSelect(event)"/>
+              <button class="browse-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+            </div>
+            <div class="selected-files" id="selectedFiles" style="display:none">
+              <div class="selected-header">
+                <span id="selectedCount">0 files selected</span>
+                <button onclick="clearFiles()" class="clear-files-btn">✕ Clear</button>
+              </div>
+              <ul id="fileList"></ul>
+            </div>
+          </div>
+
+          <div class="card scan-control-card">
+            <button class="scan-btn" id="scanBtn" onclick="startScan()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.3"/><polyline points="12 8 12 12 14 14"/></svg>
+              Start Scan
+            </button>
+            <div class="progress-section" id="progressSection" style="display:none">
+              <div class="progress-label">
+                <span id="progressLabel">Scanning…</span>
+                <span id="progressPct">0%</span>
+              </div>
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="progressFill"></div>
+              </div>
+              <div class="progress-detail" id="progressDetail">Initializing…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS SECTION -->
+    <section class="section" id="section-results">
+      <div class="filter-bar card">
+        <div class="filter-group">
+          <button class="filter-btn active" id="filter-all" onclick="filterResults('all')">All</button>
+          <button class="filter-btn" id="filter-clean" onclick="filterResults('clean')">✅ Clean</button>
+          <button class="filter-btn" id="filter-suspicious" onclick="filterResults('suspicious')">⚠ Suspicious</button>
+          <button class="filter-btn" id="filter-malicious" onclick="filterResults('malicious')">🚨 Malware</button>
+        </div>
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="searchInput" placeholder="Search files…" oninput="searchResults()"/>
+        </div>
+        <button class="export-btn" onclick="exportResults()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+
+      <div class="card table-card">
+        <div class="table-wrap">
+          <table class="scan-table" id="resultsTable">
+            <thead><tr><th>#</th><th>Filename</th><th>Claimed</th><th>Actual</th><th>Size</th><th>SHA-256</th><th>VirusTotal</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="resultsBody"><tr><td colspan="9" class="empty-cell">No results yet. Run a scan first.</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-footer" id="tableFooter">Showing 0 results</div>
+      </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section class="section" id="section-about">
+      <div class="about-layout">
+        <div class="card about-hero-card">
+          <div class="about-shield">
+            <svg viewBox="0 0 80 90" fill="none">
+              <path d="M40 5L8 18V42C8 60.56 22.4 77.92 40 82C57.6 77.92 72 60.56 72 42V18L40 5Z" fill="url(#ag)"/>
+              <path d="M28 43l8 8 16-16" stroke="#0a0e1a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs><linearGradient id="ag" x1="8" y1="5" x2="72" y2="82"><stop stop-color="#00f5a0"/><stop offset="1" stop-color="#00d9f5"/></linearGradient></defs>
+            </svg>
+          </div>
+          <h2>ShieldScan</h2>
+          <p class="version-tag">v1.0.0 — Advanced File &amp; Malware Identifier</p>
+          <p class="about-desc">A lightweight, powerful static analysis tool to detect <strong>Extension Spoofing</strong> and cross-reference files using digital fingerprints (SHA-256) and 60+ antivirus engines via VirusTotal.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="card feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>Magic Byte Validation</h3>
+            <p>Inspects raw binary headers to determine a file's true identity, ignoring deceptive extensions.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">🧬</div>
+            <h3>Cryptographic Hashing</h3>
+            <p>Generates unique SHA-256 fingerprints using memory-efficient chunk reading for any file size.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">🌐</div>
+            <h3>VirusTotal Integration</h3>
+            <p>Scans files across 60+ antivirus engines via hashes — no file upload needed.</p>
+          </div>
+          <div class="card feature-card">
+            <div class="feature-icon">📁</div>
+            <h3>Batch Directory Scan</h3>
+            <p>Recursively traverses folders to audit entire file systems in one operation.</p>
+          </div>
+        </div>
+
+        <div class="card setup-card">
+          <div class="card-header"><h2>Setup &amp; Usage</h2></div>
+          <div class="setup-steps">
+            <div class="setup-step"><span class="step-num">1</span><div><h4>Install Dependencies</h4><code class="code-block">pip install requests</code></div></div>
+            <div class="setup-step"><span class="step-num">2</span><div><h4>Get VirusTotal API Key</h4><p>Create a free account at <a href="https://www.virustotal.com" target="_blank" rel="noopener">virustotal.com</a></p></div></div>
+            <div class="setup-step"><span class="step-num">3</span><div><h4>Run the Scanner</h4><code class="code-block">python scanner.py</code></div></div>
+            <div class="setup-step"><span class="step-num">4</span><div><h4>Use This Dashboard</h4><p>Open <code>index.html</code> in any browser. No server required.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <script src="app.js"></script>
+</body>
+</html>
